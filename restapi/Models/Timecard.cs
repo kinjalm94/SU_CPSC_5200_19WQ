@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace restapi.Models
 {
@@ -167,35 +166,57 @@ namespace restapi.Models
             return annotatedLine;
         }
 
-        public bool CanBeDeleted()
+        public AnnotatedTimecardLine ReplaceLine(string LineId, TimecardLine timecardLine)
         {
-            return (Status == TimecardStatus.Cancelled || Status == TimecardStatus.Draft);
+            Guid GuidLineID = Guid.Parse(LineId);
+            var annotatedLine = Lines.FirstOrDefault(x => x.UniqueIdentifier == GuidLineID);
+            if(annotatedLine ==null)
+            {
+                return null;
+            }
+            else
+            {
+                annotatedLine.Week = timecardLine.Week;
+                annotatedLine.Year = timecardLine.Year;
+                annotatedLine.Day = timecardLine.Day;
+                annotatedLine.Hours = timecardLine.Hours;
+                annotatedLine.Project = timecardLine.Project;
+
+                return annotatedLine;
+            }
         }
 
-        public bool HasLine(Guid lineId)
+        public AnnotatedTimecardLine UpdateLine(string LineId, TimecardLine timecardLine)
         {
-            return Lines
-                .Any(l => l.UniqueIdentifier == lineId);
-        }
+            var annotatedLine = Lines.FirstOrDefault(k => k.UniqueIdentifier.ToString() == LineId);
+            if (annotatedLine == null)
+            {
+                return null;
+            }
 
-        public TimecardLine ReplaceLine(Guid lineId, TimecardLine line)
-        {
-            var targetLine = Lines
-                .FirstOrDefault(l => l.UniqueIdentifier == lineId);
+            if ((timecardLine.Week > 0))
+            {
+                annotatedLine.Week = timecardLine.Week;
+            }
+            if (timecardLine.Year > 0)
+            {
+                annotatedLine.Year = timecardLine.Year;
+            }
+            if (timecardLine.Day > 0)
+            {
+                annotatedLine.Day = timecardLine.Day;
+            }
+            if (timecardLine.Hours > 0)
+            {
+                annotatedLine.Hours = timecardLine.Hours;
+            }
+            if (timecardLine.Project != "string")
+            {
+                annotatedLine.Project = timecardLine.Project;
+            }
 
-            // this should blindly replace the public portions of
-            // the line, which might leave the line in a bad state
-            return targetLine.Update(line);
-        }
-
-        public TimecardLine ReplaceLine(Guid lineId, JObject line)
-        {
-            var targetLine = Lines
-                .FirstOrDefault(l => l.UniqueIdentifier == lineId);
-
-            // this should blindly replace the public portions of
-            // the line, which might leave the line in a bad state
-            return targetLine.Update(line);
+            return annotatedLine;
+           
         }
     }
 }
